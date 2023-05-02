@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<style>
+  body {
+    text-align: center;
+    background-color: blue;
+  }
+  
+  #musBtn {
+    background-color: white;
+    color: black;
+   	margin: 0;
+  	position: absolute;
+  	top: 75%;
+  	-ms-transform: translateY(-50%);
+  	transform: translateY(-50%);
+  }
+
+</style>
+
+<html lang="en-US">
+	<div>
+    <input type="button" id="musBtn" value="hear today">
+  </div>
+</html>
+
+<script>
+
+function greet () {
+  const hr = (new Date()).getHours();
+  let greeting = "string"  
+  	if (hr < 12) {
+    greeting = "good morning";
+  } else if (hr < 17) {
+    greeting = "good afternoon";
+  } else {
+    greeting = "good evening";
+  }
+  console.log(greeting)
+}
+  
+function appendHeader () {
+  
+}
+
+  
+	window.addEventListener('load', init)
+</script>
