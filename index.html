@@ -1,6 +1,11 @@
 <!DOCTYPE html>
+<script 
+        src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.9/Tone.js" 
+        integrity="sha512-nUjml8mN4CNYqBAy0ndDrd8pJV/eTtBNDsnvNtPqozx9/BccUeWSoKW14qWkQUnhuh8E3m+yra3qdzM68lqPEQ==" 
+        crossorigin="anonymous">
+</script>
 <style>
- @import url('https://fonts.googleapis.com/css2?family=Prata&display=swap');
+ @import url("https://fonts.googleapis.com/css2?family=Prata&display=swap");
   
   body {
     text-align: center;
@@ -52,7 +57,7 @@
 
 
   
- async function getWeather () {
+ async function weatherService () {
    
    //retreiving weather info + location info 
   const gpsURL = 'https://location.services.mozilla.com/v1/geolocate?key=test'
@@ -111,13 +116,26 @@ function greet () {
   head.innerHTML = greeting;
 }
   
+//EVERYTHING BELOW THIS IS Tone.js STUFF
+  
+const playBTN = document.getElementById("musBtn")
+const synth = new Tone.synth().toDestination();
+ 
+  
+playBTN.addEventListener("click", () => {
+  if (Tone.context.state !== "running") {
+    Tone.start();
+    synth.triggerAttackRelease("C4","8n");
+  }
+})
 
 
+//set up on load
+  
 function init () {
   greet();
-  getWeather();
+  weatherService();
 }
-
   
 	window.addEventListener('load', init)
 </script>
