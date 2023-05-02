@@ -40,8 +40,9 @@
 <html lang="en-US">
 	<h1 id="header"></h1>
   <h3 id="header2"></h3>
+  <br><br><br>
+  <img id="image" width="400px" alt="gif depicting the weather">
   <br><br><br><br>
-  <img src="https://i.gifer.com/3F3I.gif" alt="clouds">
   <div id="buto">
     " <input type="button" id="musBtn" value="hear today">"
   </div>
@@ -72,10 +73,25 @@
   console.log(info)
    
   //generate gif based off of cloud/rain conditions
-  snowGifURL = 'https://www.animationsoftware7.com/img/agifs/snow02.gif'
-  rainGifURL = 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fgiphy.com%2Fstickers%2Fwater-rain-raining-Wmp1EOzVybWd13s5DB&psig=AOvVaw0IGdQPU2RY8pe-cTd8iIHO&ust=1683087106318000&source=images&cd=vfe&ved=0CBAQjRxqFwoTCMj8m6vj1f4CFQAAAAAdAAAAABAT'
-  cloudyGifURL = 'https://i.gifer.com/3F3I.gif'
-  sunnyGifURL = 'https://media1.giphy.com/media/aL1WOMnoxfC8w/giphy.gif'
+  const snowGifURL = 'https://www.animationsoftware7.com/img/agifs/snow02.gif'
+  const rainGifURL = 'https://media3.giphy.com/media/Wmp1EOzVybWd13s5DB/giphy.gif?cid=6c09b952edmxxjg0mppraizn3dk5wq07cnbpi22m7xbgehkt&ep=v1_stickers_related&rid=giphy.gif&ct=s'
+  const cloudyGifURL = 'https://i.gifer.com/3F3I.gif'
+  const sunnyGifURL = 'https://media1.giphy.com/media/aL1WOMnoxfC8w/giphy.gif'
+  const snow = info.data[0].snow
+  const rain = info.data[0].precip
+  const cloud = info.data[0].clouds
+  const centerImg = document.getElementById("image")
+  
+  if (snow > 0.04) {
+    centerImg.src = snowGifURL;
+  } else if (rain > 0.1) {
+    centerImg.src = rainGifURL;
+ 	} else if (cloud > 80) {
+    centerImg.src = cloudyGifURL;
+  } else {
+    centerImg.src = sunnyGifURL
+  }
+  
   
    
 } 
@@ -84,7 +100,7 @@ function greet () {
   const hr = (new Date()).getHours();
   const head = document.getElementById("header");
   
-  let greeting = "string"  
+  let greeting = {}  
   	if (hr < 12) {
     greeting = "good morning";
   } else if (hr < 17) {
