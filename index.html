@@ -1,32 +1,89 @@
 <!DOCTYPE html>
 <style>
+ @import url('https://fonts.googleapis.com/css2?family=Prata&display=swap');
+  
   body {
     text-align: center;
     background-color: blue;
+    font-family: "Prata", serif;
+    font-style: italic;
   }
   
   #musBtn {
     background-color: white;
     color: black;
-   	margin: 0;
-  	position: absolute;
+  }
+  
+  #header {
+    color: white;
+    font-size: 75px;
+  }
+  
+  #header2 {
+    color: white;
+    font-size: 28px;
+  }
+  
+  #buto {
+    text-align: center;
+    color: white;
+    font-size: 60px;
+    margin: 0;
+  	position: inline-block;
   	top: 75%;
-  	-ms-transform: translateY(-50%);
-  	transform: translateY(-50%);
+  	-ms-transform: translateY(-75%);
+  	transform: translateY(-75%);
   }
 
 </style>
 
 <html lang="en-US">
-	<div>
-    <input type="button" id="musBtn" value="hear today">
+	<h1 id="header"></h1>
+  <h3 id="header2"></h3>
+  <br><br><br><br>
+  <img src="https://i.gifer.com/3F3I.gif" alt="clouds">
+  <div id="buto">
+    " <input type="button" id="musBtn" value="hear today">"
   </div>
 </html>
 
 <script>
 
+
+  
+ async function getWeather () {
+   
+   //retreiving weather info + location info 
+  const gpsURL = 'https://location.services.mozilla.com/v1/geolocate?key=test'
+  const gpsReq = await window.fetch(gpsURL)
+  const gps = await gpsReq.json()
+  const url = `https://api.weatherbit.io/v2.0/current?units=I&lat=${gps.location.lat}&lon=${gps.location.lng}&key=5c3c4259df534414b6c2ee063f50cead&`
+  const req = await window.fetch(url)
+  const info = await req.json()
+  
+  //converting temp and description info to strings
+  const temp = JSON.stringify(info.data[0].temp)
+  const descriptionObj = info.data[0].weather.description
+  const description = JSON.stringify(descriptionObj)
+  
+  //updating sub-header with temp and description
+  const head2 = document.getElementById("header2")
+  head2.innerHTML = description + "<br>" + temp + "°"
+  console.log(info)
+   
+  //generate gif based off of cloud/rain conditions
+  snowGifURL = 'https://www.animationsoftware7.com/img/agifs/snow02.gif'
+  rainGifURL = 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fgiphy.com%2Fstickers%2Fwater-rain-raining-Wmp1EOzVybWd13s5DB&psig=AOvVaw0IGdQPU2RY8pe-cTd8iIHO&ust=1683087106318000&source=images&cd=vfe&ved=0CBAQjRxqFwoTCMj8m6vj1f4CFQAAAAAdAAAAABAT'
+  cloudyGifURL = 'https://i.gifer.com/3F3I.gif'
+  sunnyGifURL = 'https://media1.giphy.com/media/aL1WOMnoxfC8w/giphy.gif'
+  
+   
+} 
+
 function greet () {
   const hr = (new Date()).getHours();
+  const head = document.getElementById("header");
+  
   let greeting = "string"  
   	if (hr < 12) {
     greeting = "good morning";
@@ -35,11 +92,14 @@ function greet () {
   } else {
     greeting = "good evening";
   }
-  console.log(greeting)
+  head.innerHTML = greeting;
 }
   
-function appendHeader () {
-  
+
+
+function init () {
+  greet();
+  getWeather();
 }
 
   
