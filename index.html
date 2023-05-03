@@ -35,6 +35,11 @@
   	transform: translateY(-75%);
   }
 
+  #speaker {
+    color: white;
+    font-size: 30px;
+  }
+
 </style>
 
 <html lang="en-US">
@@ -42,16 +47,17 @@
   <h3 id="header2"></h3>
   <br><br><br>
   <img id="image" width="400px" alt="gif depicting the weather">
-  <br><br><br><br>
+  <br><br><br>
+  <p id="speaker"></p>
   <div id="buto">
     " <input type="button" id="musBtn" value="hear today">"
   </div>
 </html>
 
-<script>
-//<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js">
-//when i swap out above commented <script> tag, none of my functions work, including tone.js functions
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tonal/browser/tonal.min.js"></script>
+<script>
   
  async function weatherService () {
    
@@ -112,26 +118,135 @@ function greet () {
   head.innerHTML = greeting;
 }
   
-//EVERYTHING BELOW THIS IS Tone.js STUFF
+/////////////////////////////////SOUND///////////////////////////////////
   
-// const playBTN = document.getElementById("musBtn")
-// const synth = new Tone.synth().toDestination();
+const synth = new Tone.Synth().toDestination();
+const playBTN = document.getElementById("musBtn");
+const speaker = document.getElementById("speaker");
+let scale;
+let osc1;
+let osc2;
+let syn1;
+let syn2;
+let lfo1;
+let lfo2;
+let lfo3;
+let loop1;
  
-  
-// playBTN.addEventListener("click", () => {
-//   if (Tone.context.state !== "running") {
-//     Tone.start();
-//     synth.triggerAttackRelease("C4","8n");
-//   }
-// })
 
+function emptySpeaker () {
+  speaker.innerHTML = ""
+}
+
+function musicPlays () {
+  if (speaker.innerHTML === "") {
+    speaker.innerHTML = "♬"
+    osc1.start();
+    osc2.start();
+    lfo1.start();
+    lfo2.start();
+    lfo3.start();
+    loop1.start();
+    Tone.Transport.start();
+  } else  {
+    speaker.innerHTML = ""
+    osc1.stop();
+    osc2.stop();
+    lfo1.stop();
+    lfo2.stop();
+    lfo3.stop();
+    loop1.stop();
+    Tone.Transport.stop();
+  }
+  }
+
+//master
+
+function toneControl () {
+  Tone.Master.volume.value = -20;
+}
+
+function loopStep (time) {
+  let random = Math.floor(Math.random() * scale.length);
+  let note = scale[random];
+  syn1.triggerAttackRelease(note, "8n", time);
+}
+
+function loopControl () {
+  loop1 = new Tone.Loop(loopStep, "4n");
+}
+
+//sound generators
+
+function oscillo1 () {
+  osc1 = new Tone.Oscillator({
+      type: "triangle",
+      frequency: "C4",
+      volume: 0,
+    }
+  );
+  osc1.connect(Tone.Master);
+
+}
+
+function oscillo2 () {
+  osc2 = new Tone.Oscillator({
+    type: "sine",
+    frequency: "E4",
+    volume: 0,
+  }
+  );
+  osc2.connect(Tone.Master);
+}
+
+function synth1 () {
+  syn1 = new Tone.Synth();
+  syn1.oscillator.type = 'square';
+  syn1.connect(Tone.Master);
+}
+
+//lfo/effects
+
+function lowFreqOsc1 () {
+  lfo1 = new Tone.LFO("0.05hz", 0, 5);
+  lfo2 = new Tone.LFO("0.08hz", 0, 5);
+  lfo3 = new Tone.LFO("0.01hz", 1, 5);
+  lfo1.connect(osc1.volume); 
+  lfo2.connect(osc2.volume);
+  lfo3.connect(syn1.volume);
+}
+ 
+//scale set up
+
+function scaleGen () {
+  scale = Tonal.Scale.get("C4 major").notes;
+}
 
 //set up on load
-  
+
 function init () {
+//front end 
   greet();
   weatherService();
+  emptySpeaker();
+//scale gen
+scaleGen();
+//load sounds
+oscillo1();
+oscillo2();
+synth1();
+lowFreqOsc1();
+//master
+toneControl();
+loopControl();
 }
-  
-	window.addEventListener('load', init)
+
+window.addEventListener('load', init)
+playBTN.addEventListener('click', musicPlays)
+playBTN.addEventListener("click", () => {
+  if (Tone.context.state !== "running") {
+    Tone.start();
+  }
+}
+)
 </script>
