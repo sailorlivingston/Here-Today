@@ -58,7 +58,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tonal/browser/tonal.min.js"></script>
 <script>
-  
+  //global weather variables
+
+  let snow;
+  let rain;
+  let cloud;
+  let tempVal;
+
+  //weather function for determining text + gif and loading variables with weather data
+
  async function weatherService () {
    
    //retreiving weather info + location info 
@@ -84,16 +92,17 @@
   const rainGifURL = 'https://media3.giphy.com/media/Wmp1EOzVybWd13s5DB/giphy.gif?cid=6c09b952edmxxjg0mppraizn3dk5wq07cnbpi22m7xbgehkt&ep=v1_stickers_related&rid=giphy.gif&ct=s'
   const cloudyGifURL = 'https://i.gifer.com/3F3I.gif'
   const sunnyGifURL = 'https://media1.giphy.com/media/aL1WOMnoxfC8w/giphy.gif'
-  const snow = info.data[0].snow
-  const rain = info.data[0].precip
-  const cloud = info.data[0].clouds
+  snow = info.data[0].snow
+  rain = info.data[0].precip
+  cloud = info.data[0].clouds
+  tempVal = info.data[0].temp
   const centerImg = document.getElementById("image")
   
   if (snow > 0.04) {
     centerImg.src = snowGifURL;
   } else if (rain > 0.1) {
     centerImg.src = rainGifURL;
- 	} else if (cloud > 80) {
+ 	} else if (cloud > 55) {
     centerImg.src = cloudyGifURL;
   } else {
     centerImg.src = sunnyGifURL
@@ -123,14 +132,24 @@ function greet () {
 const synth = new Tone.Synth().toDestination();
 const playBTN = document.getElementById("musBtn");
 const speaker = document.getElementById("speaker");
-let scale;
+
+let scaleLead;
+let scaleChord;
+let scaleBass;
+let noteList;
+let scaleNote;
+
+let mixer;
+
 let osc1;
 let osc2;
 let syn1;
 let syn2;
+
 let lfo1;
 let lfo2;
 let lfo3;
+
 let loop1;
  
 
@@ -160,15 +179,17 @@ function musicPlays () {
   }
   }
 
+
+
 //master
 
 function toneControl () {
-  Tone.Master.volume.value = -20;
+  Tone.Master.volume.value = -30;
 }
 
 function loopStep (time) {
-  let random = Math.floor(Math.random() * scale.length);
-  let note = scale[random];
+  let random = Math.floor(Math.random() * scaleLead.length);
+  let note = scaleLead[random];
   syn1.triggerAttackRelease(note, "8n", time);
 }
 
@@ -181,28 +202,28 @@ function loopControl () {
 function oscillo1 () {
   osc1 = new Tone.Oscillator({
       type: "triangle",
-      frequency: "C4",
+      frequency: `${scaleBass[4]}`,
       volume: 0,
     }
   );
-  osc1.connect(Tone.Master);
+  osc1.connect(mixer);
 
 }
 
 function oscillo2 () {
   osc2 = new Tone.Oscillator({
     type: "sine",
-    frequency: "E4",
+    frequency: `${scaleBass[0]}`,
     volume: 0,
   }
   );
-  osc2.connect(Tone.Master);
+  osc2.connect(mixer);
 }
 
 function synth1 () {
   syn1 = new Tone.Synth();
   syn1.oscillator.type = 'square';
-  syn1.connect(Tone.Master);
+  syn1.connect(mixer);
 }
 
 //lfo/effects
@@ -216,10 +237,42 @@ function lowFreqOsc1 () {
   lfo3.connect(syn1.volume);
 }
  
+//mixer
+
+function mix () {
+  mixer = new Tone.Gain();
+  mixer.connect(Tone.Master);
+//reverb
+  let reverb = new Tone.Reverb({
+      wet: 1,
+      decay: 10,
+     }
+  );
+  mixer.connect(reverb);
+  reverb.connect(Tone.Master);
+}
+
 //scale set up
 
 function scaleGen () {
-  scale = Tonal.Scale.get("C4 major").notes;
+  //rainy/snowy creates minor scale, cloudy/sunny creates major scale
+  let minMaj;
+  if (snow > 0.04) {
+    minMaj = "minor";
+  } else if (rain > 0.1) {
+    minMaj = "minor";
+ 	} else if (cloud > 55) {
+    minMaj = "major";
+  } else {
+    minMaj = "major";
+  }
+  //note names
+  noteList = ["A","A#","B","B#","C","D","D#","E","E#","F","F#","G"];
+  let random2 = Math.floor(Math.random() * noteList.length); //currently random <- this needs to be fixed to pick root note based off weather!
+  scaleNote = noteList[random2];
+  scaleLead = Tonal.Scale.get(`${scaleNote}4 ${minMaj}`).notes;
+  scaleChord = Tonal.Scale.get(`${scaleNote}4 ${minMaj}`).notes;
+  scaleBass = Tonal.Scale.get(`${scaleNote}3 ${minMaj}`).notes;
 }
 
 //set up on load
@@ -229,6 +282,8 @@ function init () {
   greet();
   weatherService();
   emptySpeaker();
+//mixer setup
+mix();
 //scale gen
 scaleGen();
 //load sounds
