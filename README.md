@@ -1,6 +1,6 @@
 # Here-Today
 
-
+![screenshot](heartoday.png)
 
 A website that collects weather data based on the website visitor's location to generate algorithmic music compositions along with a reading of the temperature and a short description of the weather. The goal of this page is to provide a minimal "weather channel" experience and to make the user consider the specific qualities of the place they inhabit. Through the generated music, the aim is for the visitor to think about how the cloud coverage, air pressure, temperature, and other meteorological minutiae are changing what they are listening to.
 
