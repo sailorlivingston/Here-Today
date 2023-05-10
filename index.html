@@ -74,8 +74,8 @@
   const gps = await gpsReq.json()
   let gpsLat = gps.location.lat
   let gpsLon = gps.location.lng
-  // let gpsLat = "20.894014690996958"
-  // let gpsLon = "94.81630303426938"
+  // let gpsLat = "59.605631178837406" 
+  // let gpsLon = "-151.41404784097617"
   const url = `https://api.weatherbit.io/v2.0/current?units=I&lat=${gpsLat}&lon=${gpsLon}&key=5c3c4259df534414b6c2ee063f50cead&`
   const req = await window.fetch(url)
   const info = await req.json()
@@ -278,7 +278,7 @@ console.log(decayMix);
   //chorus
   let chorus = new Tone.Chorus({
     frequency: 10,
-    depth: 1,
+    depth: decayMix,
   });
   reverb.connect(chorus);
   //delay for synth
