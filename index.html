@@ -39,7 +39,6 @@
     color: white;
     font-size: 30px;
   }
-
 </style>
 
 <html lang="en-US">
@@ -73,7 +72,11 @@
   const gpsURL = 'https://location.services.mozilla.com/v1/geolocate?key=test'
   const gpsReq = await window.fetch(gpsURL)
   const gps = await gpsReq.json()
-  const url = `https://api.weatherbit.io/v2.0/current?units=I&lat=${gps.location.lat}&lon=${gps.location.lng}&key=5c3c4259df534414b6c2ee063f50cead&`
+  let gpsLat = gps.location.lat
+  let gpsLon = gps.location.lng
+  // let gpsLat = "20.894014690996958"
+  // let gpsLon = "94.81630303426938"
+  const url = `https://api.weatherbit.io/v2.0/current?units=I&lat=${gpsLat}&lon=${gpsLon}&key=5c3c4259df534414b6c2ee063f50cead&`
   const req = await window.fetch(url)
   const info = await req.json()
   
@@ -91,11 +94,12 @@
   const snowGifURL = 'https://www.animationsoftware7.com/img/agifs/snow02.gif'
   const rainGifURL = 'https://media3.giphy.com/media/Wmp1EOzVybWd13s5DB/giphy.gif?cid=6c09b952edmxxjg0mppraizn3dk5wq07cnbpi22m7xbgehkt&ep=v1_stickers_related&rid=giphy.gif&ct=s'
   const cloudyGifURL = 'https://i.gifer.com/3F3I.gif'
-  const sunnyGifURL = 'https://media1.giphy.com/media/aL1WOMnoxfC8w/giphy.gif'
-  snow = info.data[0].snow
-  rain = info.data[0].precip
-  cloud = info.data[0].clouds
-  tempVal = info.data[0].temp
+  const sunnyGifURL = 'https://i.gifer.com/origin/52/529d0928c046f2483a26dec27594b979_w200.gif'//'https://media1.giphy.com/media/aL1WOMnoxfC8w/giphy.gif'
+   snow = info.data[0].snow
+  // snow = 1
+   rain = info.data[0].precip
+   cloud = info.data[0].clouds
+   tempVal = info.data[0].temp
   const centerImg = document.getElementById("image")
   
   if (snow > 0.04) {
@@ -107,10 +111,11 @@
   } else {
     centerImg.src = sunnyGifURL
   }
-  
-  
    
 } 
+
+
+
 
 function greet () {
   const hr = (new Date()).getHours();
@@ -190,7 +195,8 @@ function toneControl () {
 function loopStep (time) {
   let random = Math.floor(Math.random() * scaleLead.length);
   let note = scaleLead[random];
-  syn1.triggerAttackRelease(note, "8n", time);
+  let vel = Math.random();
+  syn1.triggerAttackRelease(note, "8n", time, vel);
 }
 
 function loopControl () {
@@ -199,10 +205,21 @@ function loopControl () {
 
 //sound generators
 
-function oscillo1 () {
+async function oscillo1 () {
+  await weatherService();
+  let osc1type;
+  if (snow > 0.04) {
+    osc1type = "sine";
+  } else if (rain > 0.1) {
+    osc1type = "triangle";
+ 	} else if (cloud > 55) {
+    osc1type = "sine";
+  } else {
+    osc1type = "triangle"
+  }
   osc1 = new Tone.Oscillator({
-      type: "triangle",
-      frequency: `${scaleBass[4]}`,
+      type: osc1type,
+      frequency: `${scaleBass[0]}`,
       volume: 0,
     }
   );
@@ -210,25 +227,32 @@ function oscillo1 () {
 
 }
 
-function oscillo2 () {
+async function oscillo2 () {
+  await weatherService();
   osc2 = new Tone.Oscillator({
     type: "sine",
-    frequency: `${scaleBass[0]}`,
+    frequency: `${scaleBass[2]}`,
     volume: 0,
   }
   );
-  osc2.connect(mixer);
+  if (snow > 0.04) {
+    osc2.connect(phaser);
+  } else {
+    osc2.connect(mixer);
+  };
 }
 
-function synth1 () {
+async function synth1 () {
+  await weatherService();
   syn1 = new Tone.Synth();
   syn1.oscillator.type = 'square';
   syn1.connect(mixer);
 }
 
-//lfo/effects
+//lfo
 
-function lowFreqOsc1 () {
+async function lowFreqOsc1 () {
+  await weatherService();
   lfo1 = new Tone.LFO("0.05hz", 0, 5);
   lfo2 = new Tone.LFO("0.08hz", 0, 5);
   lfo3 = new Tone.LFO("0.01hz", 1, 5);
@@ -238,23 +262,44 @@ function lowFreqOsc1 () {
 }
  
 //mixer
-
-function mix () {
+async function mix () {
+  await weatherService();
   mixer = new Tone.Gain();
   mixer.connect(Tone.Master);
 //reverb
+let decayMix = cloud + 1 / 100;
+console.log(decayMix);
   let reverb = new Tone.Reverb({
       wet: 1,
-      decay: 10,
+      decay: decayMix,
      }
   );
   mixer.connect(reverb);
-  reverb.connect(Tone.Master);
+  //chorus
+  let chorus = new Tone.Chorus({
+    frequency: 10,
+    depth: 1,
+  });
+  reverb.connect(chorus);
+  //delay for synth
+  let pinPonFeedback = rain + 5 / 100
+  let ppDelay = new Tone.PingPongDelay("4n",pinPonFeedback);
+  chorus.connect(ppDelay);
+  ppDelay.connect(Tone.Master);
+
+  //phaser for osc2
+  const phaser = new Tone.Phaser({
+    frequency:1500,
+    octaves: 5,
+    baseFrequency: 1000
+  })
+  phaser.connect(Tone.Master)
 }
 
 //scale set up
 
-function scaleGen () {
+async function scaleGen () {
+  await weatherService();
   //rainy/snowy creates minor scale, cloudy/sunny creates major scale
   let minMaj;
   if (snow > 0.04) {
@@ -266,10 +311,34 @@ function scaleGen () {
   } else {
     minMaj = "major";
   }
+  
   //note names
   noteList = ["A","A#","B","B#","C","D","D#","E","E#","F","F#","G"];
-  let random2 = Math.floor(Math.random() * noteList.length); //currently random <- this needs to be fixed to pick root note based off weather!
-  scaleNote = noteList[random2];
+  if (tempVal < 0 ) {
+    scaleNote = noteList[0];
+  } else if (tempVal > -100 && tempVal < 9) {
+    scaleNote = noteList[1];
+ 	} else if (tempVal > 9 && tempVal < 19) {
+    scaleNote = noteList[2];
+  } else if (tempVal > 19 && tempVal < 29){
+    scaleNote = noteList[3];
+  } else if (tempVal > 29 && tempVal < 39) {
+    scaleNote = noteList[4];
+ 	} else if (tempVal > 39 && tempVal < 49) {
+    scaleNote = noteList[5];
+  } else if (tempVal > 49 && tempVal < 59){
+    scaleNote = noteList[6];
+  } else if (tempVal > 59 && tempVal < 69) {
+    scaleNote = noteList[7];
+ 	} else if (tempVal > 69 && tempVal < 79) {
+    scaleNote = noteList[8];
+  } else if (tempVal > 79 && tempVal < 89) {
+    scaleNote = noteList[9];
+  } else if (tempVal > 89 && tempVal < 99) {
+    scaleNote = noteList[10];
+  } else {
+    scaleNote = noteList[11];
+  }
   scaleLead = Tonal.Scale.get(`${scaleNote}4 ${minMaj}`).notes;
   scaleChord = Tonal.Scale.get(`${scaleNote}4 ${minMaj}`).notes;
   scaleBass = Tonal.Scale.get(`${scaleNote}3 ${minMaj}`).notes;
@@ -279,9 +348,9 @@ function scaleGen () {
 
 function init () {
 //front end 
-  greet();
-  weatherService();
-  emptySpeaker();
+greet();
+weatherService();
+emptySpeaker();
 //mixer setup
 mix();
 //scale gen
@@ -304,4 +373,6 @@ playBTN.addEventListener("click", () => {
   }
 }
 )
+
+
 </script>
